@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, ArrowRight } from 'lucide-react';
@@ -16,6 +16,17 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Intercept old Magic Links that the middleware redirected to /login
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code');
+      if (code) {
+        router.push(`/auth/callback?code=${code}&next=/reset-password`);
+      }
+    }
+  }, [router]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) {
@@ -27,15 +38,8 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const role = await getUserRole(email, password);
-      
-      if (!role) {
-        setError('Invalid credentials or unauthorized email address.');
-        setLoading(false);
-        return;
-      }
-
       const user = await login(email, password);
+      
       if (user) {
         if (user.role === 'admin') {
           router.push('/admin/dashboard');
@@ -43,7 +47,7 @@ export default function LoginPage() {
           router.push('/portal');
         }
       } else {
-        setError('Authentication failed. Please try again.');
+        setError('Invalid credentials or authentication failed.');
       }
     } catch (err) {
       setError('An error occurred during sign in.');

@@ -39,6 +39,10 @@ export type Certificate = {
   generalAggregateLimit: string;
   eachOccurrenceLimit: string;
   fileSize?: string;
+  /** Path in the 'coi-templates' Supabase Storage bucket */
+  templateStoragePath?: string;
+  /** Pre-filled by admin; fully editable by client */
+  descriptionOfOperations?: string;
 };
 
 export type Activity = {

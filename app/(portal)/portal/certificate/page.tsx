@@ -53,7 +53,7 @@ export default function ViewCertificatePage() {
             >
               <Minus className="w-3.5 h-3.5" />
             </button>
-            <span className="px-3 min-w-[44px] text-center font-mono text-slate-600">
+            <span className="px-3 min-w-11 text-center font-mono text-slate-600">
               {zoomLevel}%
             </span>
             <button
@@ -91,7 +91,7 @@ export default function ViewCertificatePage() {
       </div>
 
       {/* Main Full-Width PDF Viewer Container matching Design Screenshot */}
-      <div className="w-full bg-[#eef2f6] border border-slate-200/90 rounded-2xl p-6 sm:p-10 flex justify-center items-start overflow-x-auto min-h-[750px] shadow-inner">
+      <div className="w-full bg-[#eef2f6] border border-slate-200/90 rounded-2xl p-6 sm:p-10 flex justify-center items-start overflow-x-auto min-h-187.5 shadow-inner">
         {/* PDF Document Document View Frame scaled dynamically by Zoom Level */}
         <div
           style={{ width: `${zoomLevel}%`, maxWidth: '1000px', minWidth: '320px' }}

@@ -2,13 +2,17 @@
 
 import React, { useState, useRef } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/shared/Button';
+import { createClient } from '@/lib/supabase/client';
 
 export default function VerifyOtpPage() {
   const router = useRouter();
-  const [otp, setOtp] = useState<string[]>(['2', '3', '1', '5', '']);
+  const searchParams = useSearchParams();
+  const email = searchParams.get('email') || '';
+  const [otp, setOtp] = useState<string[]>(['', '', '', '', '', '']); // 6 digits for Supabase
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const handleChange = (index: number, value: string) => {
@@ -20,7 +24,7 @@ export default function VerifyOtpPage() {
     setOtp(newOtp);
 
     // Auto focus next input
-    if (value && index < 4) {
+    if (value && index < 5) {
       inputRefs.current[index + 1]?.focus();
     }
   };
@@ -31,14 +35,33 @@ export default function VerifyOtpPage() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const token = otp.join('');
+    if (token.length !== 6 || !email) {
+      setError('Please enter a valid 6-digit code.');
+      return;
+    }
+
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      // Navigate to set new password page
-      router.push('/reset-password');
-    }, 600);
+    setError('');
+
+    const supabase = createClient();
+    const { error: verifyError } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'recovery',
+    });
+
+    setLoading(false);
+
+    if (verifyError) {
+      setError(verifyError.message);
+      return;
+    }
+
+    // Navigate to set new password page
+    router.push('/reset-password');
   };
 
   return (
@@ -46,12 +69,18 @@ export default function VerifyOtpPage() {
       <div className="mb-6">
         <h2 className="text-xl font-bold text-slate-900 leading-tight">Verify reset password</h2>
         <p className="text-xs text-slate-500 mt-1">
-          Enter the code sent to your email to reset your password
+          Enter the 6-digit code sent to {email || 'your email'} to reset your password
         </p>
       </div>
 
+      {error && (
+        <div className="mb-4 p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium">
+          {error}
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* 5-Digit OTP Code Inputs matching Image 2 */}
+        {/* 6-Digit OTP Code Inputs */}
         <div className="flex items-center justify-between gap-2 sm:gap-3 py-2">
           {otp.map((digit, idx) => (
             <input

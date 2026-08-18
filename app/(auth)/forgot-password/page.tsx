@@ -4,20 +4,33 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/shared/Button';
+import { createClient } from '@/lib/supabase/client';
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      // Navigate to OTP verification page
-      router.push('/verify-otp');
-    }, 600);
+    setError('');
+
+    const supabase = createClient();
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
+    });
+    
+    setLoading(false);
+    
+    if (resetError) {
+      setError(resetError.message);
+      return;
+    }
+
+    // Navigate to OTP verification page
+    router.push(`/verify-otp?email=${encodeURIComponent(email)}`);
   };
 
   return (
@@ -26,6 +39,12 @@ export default function ForgotPasswordPage() {
         <h2 className="text-xl font-bold text-slate-900 leading-tight">Reset your password</h2>
         <p className="text-xs text-slate-500 mt-1">Enter your email and we&apos;ll send you a code.</p>
       </div>
+
+      {error && (
+        <div className="mb-4 p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium">
+          {error}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>

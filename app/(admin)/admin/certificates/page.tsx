@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import Link from 'next/link';
-import { Search, Upload, FileText, Check } from 'lucide-react';
+import { Search, Upload, FileText, Loader2 } from 'lucide-react';
 import { Button } from '@/components/shared/Button';
 import { Card } from '@/components/shared/Card';
 import { INITIAL_CERTIFICATES, INITIAL_CLIENTS } from '@/lib/mockData';
@@ -12,16 +12,19 @@ export default function AdminCertificatesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [certificates, setCertificates] = useState<Certificate[]>(INITIAL_CERTIFICATES);
   
-  // Modals state matching design screenshots
+  // Modals state
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showSuccessUploadModal, setShowSuccessUploadModal] = useState(false);
   const [showSuccessEmailModal, setShowSuccessEmailModal] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
-  // Upload Form State (Image 2)
+  // Upload Form State
   const [selectedClient, setSelectedClient] = useState('');
   const [holderName, setHolderName] = useState('');
   const [holderEmail, setHolderEmail] = useState('');
-  const [fileName, setFileName] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const filteredCerts = certificates.filter(
     (c) =>
@@ -30,31 +33,69 @@ export default function AdminCertificatesPage() {
       c.certificateNumber.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleUploadSubmit = (e: React.FormEvent) => {
+  const handleUploadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newCert: Certificate = {
-      id: `cert-${Date.now()}`,
-      clientId: selectedClient || 'client-1',
-      certificateNumber: `COI-2026-${Math.floor(10000 + Math.random() * 90000)}`,
-      certificateHolderName: holderName || 'Certificate Holder LLC',
-      certificateHolderAddress: '100 Main Street, Suite 200',
-      certificateDate: 'Jan 1, 2026',
-      insuredName: selectedClient ? INITIAL_CLIENTS.find(c => c.id === selectedClient)?.contactName || 'Client' : 'James Okafor',
-      additionalInsured: true,
-      status: 'active',
-      lastUpdated: 'Aug 8, 2026',
-      policyType: fileName ? fileName.replace('.pdf', '') : 'General Liability 2026',
-      policyNumber: 'GL-99381-01',
-      effectiveDate: 'Jan 1, 2026',
-      expirationDate: 'Jan 1, 2027',
-      generalAggregateLimit: '$5,000,000',
-      eachOccurrenceLimit: '$2,000,000',
-      fileSize: '1.2 MB',
-    };
+    setUploading(true);
+    setUploadError(null);
 
-    setCertificates([newCert, ...certificates]);
-    setShowUploadModal(false);
-    setShowSuccessUploadModal(true);
+    try {
+      const formData = new FormData();
+      formData.append('clientId', selectedClient || 'client-1');
+      formData.append('policyType', selectedFile ? selectedFile.name.replace('.pdf', '') : 'General Liability 2026');
+      formData.append('policyNumber', '');
+      formData.append('insuredName', INITIAL_CLIENTS.find(c => c.id === selectedClient)?.contactName ?? '');
+      formData.append('holderName', holderName || 'Certificate Holder LLC');
+      formData.append('holderEmail', holderEmail);
+      if (selectedFile) formData.append('file', selectedFile);
+
+      const res = await fetch('/api/admin/certificates/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({ error: 'Upload failed.' }));
+        setUploadError(json.error ?? 'Failed to upload certificate.');
+        return;
+      }
+
+      const { certificate } = await res.json();
+
+      // Also update local state as a fallback display
+      const newCert: Certificate = {
+        id: certificate?.id ?? `cert-${Date.now()}`,
+        clientId: selectedClient || 'client-1',
+        certificateNumber: certificate?.certificate_number ?? `COI-${Date.now()}`,
+        certificateHolderName: holderName || 'Certificate Holder LLC',
+        certificateHolderAddress: '',
+        certificateDate: 'Jan 1, 2026',
+        insuredName: certificate?.insured_name ?? '',
+        additionalInsured: false,
+        status: 'active',
+        lastUpdated: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        policyType: certificate?.policy_type ?? (selectedFile?.name.replace('.pdf', '') ?? 'General Liability 2026'),
+        policyNumber: '',
+        effectiveDate: '',
+        expirationDate: '',
+        generalAggregateLimit: '',
+        eachOccurrenceLimit: '',
+        fileSize: selectedFile ? `${(selectedFile.size / 1024).toFixed(0)} KB` : undefined,
+        templateStoragePath: certificate?.template_storage_path ?? undefined,
+      };
+
+      setCertificates([newCert, ...certificates]);
+      setShowUploadModal(false);
+      setShowSuccessUploadModal(true);
+      // Reset form
+      setSelectedClient('');
+      setHolderName('');
+      setHolderEmail('');
+      setSelectedFile(null);
+    } catch {
+      setUploadError('Network error — could not upload certificate.');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleTriggerEmail = () => {
@@ -203,13 +244,13 @@ export default function AdminCertificatesPage() {
                 </select>
               </div>
 
-              {/* Field 2: Drag & Drop File Container matching Image 2 */}
+              {/* Field 2: Real PDF File Upload */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Certificate File
+                  Certificate File (PDF)
                 </label>
                 <div
-                  onClick={() => setFileName('General Liability 2026.pdf')}
+                  onClick={() => fileInputRef.current?.click()}
                   className="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center hover:border-teal-500 transition-colors bg-slate-50/50 cursor-pointer"
                 >
                   <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 mx-auto mb-2">
@@ -219,9 +260,16 @@ export default function AdminCertificatesPage() {
                     Drop PDF here or <span className="text-teal-600 underline">browse</span>
                   </p>
                   <p className="text-[11px] text-slate-400 mt-1">
-                    {fileName ? `Selected: ${fileName}` : 'PDF files only · Max 10 MB'}
+                    {selectedFile ? `Selected: ${selectedFile.name} (${(selectedFile.size / 1024).toFixed(0)} KB)` : 'PDF files only · Max 10 MB'}
                   </p>
                 </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf,application/pdf"
+                  className="hidden"
+                  onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)}
+                />
               </div>
 
               {/* Field 3: Certificate Holder's Name */}
@@ -254,14 +302,22 @@ export default function AdminCertificatesPage() {
                 />
               </div>
 
-              {/* Buttons matching Image 2 */}
+              {/* Upload errors */}
+              {uploadError && (
+                <p className="text-xs text-red-600 font-medium bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                  {uploadError}
+                </p>
+              )}
+
+              {/* Buttons */}
               <div className="flex items-center gap-3 pt-4">
                 <Button
                   type="button"
                   variant="outline"
                   size="md"
-                  onClick={() => setShowUploadModal(false)}
+                  onClick={() => { setShowUploadModal(false); setUploadError(null); }}
                   className="w-1/3 py-2.5 rounded-xl text-slate-700 border-slate-300 font-medium"
+                  disabled={uploading}
                 >
                   Cancel
                 </Button>
@@ -269,9 +325,11 @@ export default function AdminCertificatesPage() {
                   type="submit"
                   variant="primary"
                   size="md"
+                  disabled={uploading}
+                  icon={uploading ? <Loader2 className="w-4 h-4 text-white animate-spin" /> : undefined}
                   className="w-2/3 py-2.5 rounded-xl bg-[#0e2a47] hover:bg-[#0a1e33] text-white font-semibold shadow-sm"
                 >
-                  Upload & Mail
+                  {uploading ? 'Uploading…' : 'Upload & Save'}
                 </Button>
               </div>
             </form>

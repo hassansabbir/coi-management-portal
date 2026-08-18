@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/shared/Button';
+import { createClient } from '@/lib/supabase/client';
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -14,7 +15,7 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
       setError('Passwords do not match.');
@@ -24,11 +25,20 @@ export default function ResetPasswordPage() {
     setLoading(true);
     setError('');
 
-    setTimeout(() => {
-      setLoading(false);
-      // Navigate to password changed success page
-      router.push('/password-changed');
-    }, 600);
+    const supabase = createClient();
+    const { error: updateError } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+
+    setLoading(false);
+
+    if (updateError) {
+      setError(updateError.message);
+      return;
+    }
+
+    // Navigate to password changed success page
+    router.push('/password-changed');
   };
 
   return (

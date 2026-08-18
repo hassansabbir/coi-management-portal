@@ -122,7 +122,7 @@ export default function ClientAccountPage() {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   required
-                  className="sm:w-72 px-3 py-2 text-right text-xs font-semibold text-slate-900 bg-transparent border border-transparent focus:border-slate-200 focus:bg-white rounded-lg focus:outline-none"
+                  className="sm:w-72 px-3 py-2 text-right text-xs font-semibold text-slate-900 bg-transparent border border-transparent rounded-lg focus:outline-none"
                 />
               </div>
 
@@ -136,7 +136,7 @@ export default function ClientAccountPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="sm:w-72 px-3 py-2 text-right text-xs font-semibold text-slate-900 bg-transparent border border-transparent focus:border-slate-200 focus:bg-white rounded-lg focus:outline-none"
+                  className="sm:w-72 px-3 py-2 text-right text-xs font-semibold text-slate-900 bg-transparent border border-transparent rounded-lg focus:outline-none"
                 />
               </div>
 
