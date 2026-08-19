@@ -33,17 +33,19 @@ export function DashboardClient({
   return (
     <div className="flex-1 flex flex-col min-h-screen">
       {/* Top Header Bar */}
-      <header className="bg-white border-b border-slate-200/80 px-6 lg:px-8 py-4 flex items-center justify-between">
-        <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">Dashboard</h1>
+      <header className="bg-white border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center justify-between w-full sm:w-auto">
+          <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">Dashboard</h1>
+        </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
           {/* Add Client Action Button */}
           <Button
             variant="outline"
             size="md"
             icon={<Plus className="w-4 h-4 text-slate-700" />}
             onClick={() => setShowAddClientModal(true)}
-            className="bg-white border-slate-200 font-semibold text-slate-800"
+            className="flex-1 sm:flex-none justify-center bg-white border-slate-200 font-semibold text-slate-800"
           >
             Add Client
           </Button>
@@ -54,22 +56,11 @@ export function DashboardClient({
             size="md"
             icon={<Upload className="w-4 h-4 text-white" />}
             onClick={() => setShowUploadModal(true)}
-            className="bg-[#0e2a47] font-semibold"
+            className="flex-1 sm:flex-none justify-center bg-[#0e2a47] font-semibold"
           >
-            Upload Certificate
+            Upload
           </Button>
 
-          {/* Notification Bell */}
-          <div className="h-6 w-px bg-slate-200 mx-1 hidden sm:block" />
-
-          <button
-            aria-label="Notifications"
-            onClick={() => handleActionToast('No new unread notifications.')}
-            className="relative p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
-          >
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white" />
-          </button>
         </div>
       </header>
 
@@ -200,17 +191,17 @@ export function DashboardClient({
                     </option>
                   ))}
                 </select>
-              </div>
+                </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Certificate Type</label>
-                <input
-                  type="text"
-                  required
-                  defaultValue="General Liability (ACORD 25)"
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0e2a47]"
-                />
-              </div>
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-800">Certificate Type</label>
+                  <input
+                    type="text"
+                    defaultValue="Certificate of Liability Insurance"
+                    readOnly
+                    className="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg text-slate-500 font-medium cursor-not-allowed"
+                  />
+                </div>
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">File Attachment (PDF)</label>

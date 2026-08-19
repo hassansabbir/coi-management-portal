@@ -46,7 +46,7 @@ export function CertificatesClient({ initialCertificates, clientsList }: Certifi
     try {
       const formData = new FormData();
       formData.append('clientId', selectedClient);
-      formData.append('policyType', selectedFile ? selectedFile.name.replace('.pdf', '') : 'General Liability 2026');
+      formData.append('policyType', selectedFile ? selectedFile.name.replace('.pdf', '') : 'Certificate of Liability Insurance');
       formData.append('policyNumber', '');
       formData.append('insuredName', clientsList.find(c => c.id === selectedClient)?.contactName ?? '');
       formData.append('holderName', holderName || 'Certificate Holder LLC');
@@ -146,7 +146,7 @@ export function CertificatesClient({ initialCertificates, clientsList }: Certifi
 
         <Card className="p-0 overflow-hidden border-slate-200">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full min-w-[800px] text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50/90 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                   <th className="px-6 py-3.5">Certificate</th>
@@ -166,7 +166,8 @@ export function CertificatesClient({ initialCertificates, clientsList }: Certifi
                         </div>
                         <div>
                           <p className="font-bold text-slate-900 leading-tight">{cert.policyType}</p>
-                          <p className="text-xs text-slate-400 mt-0.5">{cert.fileSize || '1.2 MB'}</p>
+                          <p className="text-[11px] font-semibold text-slate-500 mt-1">Certificate of Liability Insurance</p>
+                          <p className="text-[11px] text-slate-400 mt-0.5">{cert.fileSize || '1.2 MB'}</p>
                         </div>
                       </div>
                     </td>
@@ -254,8 +255,9 @@ export function CertificatesClient({ initialCertificates, clientsList }: Certifi
                 <input
                   type="text"
                   required
-                  defaultValue="General Liability (ACORD 25)"
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0e2a47]"
+                  readOnly
+                  defaultValue="Certificate of Liability Insurance"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-500 font-medium focus:outline-none cursor-not-allowed"
                 />
               </div>
 

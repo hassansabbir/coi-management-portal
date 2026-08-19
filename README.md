@@ -1,36 +1,105 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ewing Agency COI Management
+
+The **Ewing Agency COI Management** platform is a modern, responsive web application built to streamline the generation, management, and distribution of Certificates of Insurance (COI), primarily ACORD 25 certificates.
+
+The platform consists of a secure **Admin Portal** for managing clients and issuing certificates, and a **Client Portal** where insureds can view their active policies and download their dynamically stamped PDF certificates.
+
+## Features
+
+### Admin Portal
+- **Dashboard Overview**: View high-level metrics of clients and active certificates.
+- **Client Management**: Create, view, and delete client accounts securely.
+- **Certificate Upload & Stamping**: Upload base ACORD 25 templates and automatically stamp them with dynamic client data (Insured Name, Date, Certificate Holder details, etc.) using `pdf-lib`.
+- **Automated Email Notifications**: Automatically dispatch stamped certificates via email when issued.
+- **Mobile Responsive UI**: A fully responsive interface to manage certificates on the go.
+
+### Client Portal
+- **Secure Access**: Clients can log in to their secure portal using magic links/OTP or passwords.
+- **Document Viewing**: View active and historical certificates in a built-in PDF viewer.
+- **Account Settings**: Clients can update their profile information and change passwords.
+
+## Tech Stack
+
+- **Framework**: [Next.js 15 (App Router)](https://nextjs.org/)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **Database & Authentication**: [Supabase](https://supabase.com/)
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **PDF Manipulation**: [pdf-lib](https://pdf-lib.js.org/)
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+You will need the following tools installed on your local machine:
+- Node.js (v18 or higher)
+- npm, yarn, pnpm, or bun
+
+You will also need a **Supabase** account and project setup with the following buckets and tables.
+
+#### Database Schema
+Ensure your Supabase project includes the following tables:
+- `user_profiles`
+- `clients`
+- `certificates`
+
+#### Storage Buckets
+Ensure you have created the following public buckets in Supabase Storage:
+- `coi-templates`: Used by admins to upload the raw ACORD 25 templates.
+- `generated-cois`: (Optional) Used if generated PDFs are cached.
+
+### Environment Variables
+
+Create a `.env.local` file in the root of your project and populate it with your Supabase credentials:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Installation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Clone the repository:
+   ```bash
+   git clone <repository_url>
+   cd ewing-agency-coi-management
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+2. Install the dependencies:
+   ```bash
+   npm install
+   ```
 
-## Learn More
+3. Run the development server:
+   ```bash
+   npm run dev
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+4. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `app/(admin)`: Routes and pages for the Admin Portal.
+- `app/(auth)`: Authentication routes (Login, Verify OTP, etc.).
+- `app/(portal)`: Routes and pages for the Client Portal.
+- `app/api`: Serverless API routes (Supabase Edge functions equivalent).
+- `app/actions`: Next.js Server Actions for secure database mutations.
+- `components/`: Reusable React components (UI elements, layout components, and client-side page views).
+- `lib/`: Utility libraries (Supabase client setups, Auth guards, PDF generation logic).
 
-## Deploy on Vercel
+## PDF Processing (`lib/pdf/generateCOI.ts`)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The application dynamically processes ACORD 25 templates. When a certificate is viewed or generated, it retrieves the base template from the Supabase `coi-templates` bucket and uses `pdf-lib` to overlay the specific client and holder data directly onto the PDF at predetermined coordinate maps.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Deployment
+
+This project is configured and optimized for deployment on [Vercel](https://vercel.com/new). Make sure to define the Environment Variables in your Vercel project settings prior to building.
+
+```bash
+npx vercel --prod
+```
+
+## License
+
+This project is private and intended solely for the use of the Ewing Agency.

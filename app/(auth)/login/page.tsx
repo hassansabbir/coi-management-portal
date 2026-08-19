@@ -56,16 +56,7 @@ export default function LoginPage() {
     }
   };
 
-  const handleQuickFill = (role: 'admin' | 'client') => {
-    if (role === 'admin') {
-      setEmail('admin@coiplatform.com');
-      setPassword('password123');
-    } else {
-      setEmail('jordan@riverside.com');
-      setPassword('password123');
-    }
-    setError('');
-  };
+
 
   return (
     <>
@@ -158,30 +149,6 @@ export default function LoginPage() {
         </div>
       </form>
 
-      {/* Demo Account Fill Bar */}
-      <div className="mt-6 pt-4 border-t border-slate-100">
-        <span className="text-[11px] font-semibold text-slate-400 block mb-2 text-center uppercase tracking-wider">
-          Test Accounts (Frontend Demo)
-        </span>
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={() => handleQuickFill('admin')}
-            className="px-2.5 py-1.5 rounded bg-slate-100 hover:bg-slate-200 text-[11px] font-semibold text-slate-700 transition-colors flex items-center justify-center gap-1 cursor-pointer"
-          >
-            <span>Admin Portal</span>
-            <ArrowRight className="w-3 h-3 text-slate-500" />
-          </button>
-          <button
-            type="button"
-            onClick={() => handleQuickFill('client')}
-            className="px-2.5 py-1.5 rounded bg-slate-100 hover:bg-slate-200 text-[11px] font-semibold text-slate-700 transition-colors flex items-center justify-center gap-1 cursor-pointer"
-          >
-            <span>Client Portal</span>
-            <ArrowRight className="w-3 h-3 text-slate-500" />
-          </button>
-        </div>
-      </div>
     </>
   );
 }

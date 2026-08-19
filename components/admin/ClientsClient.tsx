@@ -109,7 +109,7 @@ export function ClientsClient({ initialClients }: ClientsClientProps) {
 
         <Card className="p-0 overflow-hidden border-slate-200">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full min-w-[800px] text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50/90 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                   <th className="px-6 py-3.5">Client</th>

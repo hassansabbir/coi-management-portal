@@ -3,7 +3,7 @@
 import React, { use, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ChevronRight, Mail, Download } from 'lucide-react';
+import { ChevronRight, Mail, Download, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/shared/Button';
 import { Card } from '@/components/shared/Card';
 import { INITIAL_CERTIFICATES } from '@/lib/mockData';
@@ -12,12 +12,42 @@ export default function AdminCertificateDetailPage({ params }: { params: Promise
   const router = useRouter();
   const resolvedParams = use(params);
   const certId = resolvedParams.certId;
-
-  const cert = INITIAL_CERTIFICATES.find((c) => c.id === certId) || INITIAL_CERTIFICATES[0];
   const [showSuccessEmailModal, setShowSuccessEmailModal] = useState(false);
+  const [cert, setCert] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [pdfError, setPdfError] = useState<string | null>(null);
+
+  // Fetch real data on mount
+  React.useEffect(() => {
+    async function fetchCert() {
+      try {
+        const response = await fetch(`/api/admin/certificates/${certId}`);
+        if (response.ok) {
+          const data = await response.json();
+          setCert(data);
+          setPdfUrl(`/api/admin/certificates/${certId}/pdf`);
+        }
+      } catch (err) {
+        console.error('Failed to fetch certificate', err);
+        setPdfError('Network error loading PDF');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchCert();
+  }, [certId]);
+
+  if (loading) {
+    return <div className="p-8 text-center text-slate-500">Loading certificate details...</div>;
+  }
+
+  if (!cert) {
+    return <div className="p-8 text-center text-slate-500">Certificate not found.</div>;
+  }
 
   const handleDownload = () => {
-    alert(`Downloading ${cert.policyType}.pdf...`);
+    alert(`Downloading ${cert.policy_type || cert.policyType}.pdf...`);
   };
 
   return (
@@ -115,91 +145,32 @@ export default function AdminCertificateDetailPage({ params }: { params: Promise
                 <span className="text-xs font-bold text-slate-700">{cert.policyType}.pdf</span>
               </div>
 
-              {/* ACORD 25 Document Preview Frame matching Image 4 */}
-              <div className="p-6 bg-slate-100/70 flex justify-center">
-                <div className="bg-white border border-slate-300 shadow-md p-8 rounded-sm w-full text-[11px] space-y-4 text-slate-900 font-sans">
-                  {/* Top Header Banner */}
-                  <div className="bg-[#0e2a47] text-white p-3 rounded-xs flex justify-between items-center">
-                    <div>
-                      <h3 className="font-bold text-xs uppercase tracking-tight">CERTIFICATE OF LIABILITY INSURANCE</h3>
-                      <p className="text-[9px] text-slate-300 font-mono">ACORD 25 (2016/03)</p>
-                    </div>
-                    <div className="text-right text-[9px] font-mono">
-                      <p>DATE (MM/DD/YYYY): 2025-01-30</p>
-                    </div>
+              {/* Actual PDF Preview Frame */}
+              <div className="bg-[#eef2f6] p-6 flex justify-center items-start overflow-x-auto min-h-[600px] shadow-inner">
+                {loading ? (
+                  <div className="flex flex-col items-center justify-center mt-20 text-slate-500">
+                    <Loader2 className="w-8 h-8 animate-spin mb-4" />
+                    <p className="text-sm font-semibold">Loading certificate details...</p>
                   </div>
-
-                  {/* Disclaimer */}
-                  <p className="text-[9px] text-slate-500 leading-tight">
-                    THIS CERTIFICATE IS ISSUED AS A MATTER OF INFORMATION ONLY AND CONFERS NO RIGHTS UPON THE CERTIFICATE HOLDER. THIS CERTIFICATE DOES NOT AFFIRMATIVELY OR NEGATIVELY AMEND, EXTEND OR ALTER THE COVERAGE AFFORDED BY THE POLICIES BELOW.
-                  </p>
-
-                  {/* Producer & Insured */}
-                  <div className="grid grid-cols-2 gap-4 border border-slate-300 p-3 rounded-xs text-[10px]">
-                    <div>
-                      <p className="font-bold uppercase text-[9px] text-slate-400">PRODUCER</p>
-                      <p className="font-bold">Acme Insurance Agency LLC</p>
-                      <p>123 Insurance Ave, Suite 400</p>
-                      <p>New York, NY 10001</p>
-                      <p>Phone: (212) 555-0100</p>
-                    </div>
-                    <div>
-                      <p className="font-bold uppercase text-[9px] text-slate-400">INSURED</p>
-                      <p className="font-bold">{cert.insuredName}</p>
-                      <p>456 Builder Blvd, Suite 200</p>
-                      <p>Dallas, TX 75001</p>
-                    </div>
+                ) : pdfError ? (
+                  <div className="flex flex-col items-center justify-center mt-20 text-red-500 bg-red-50 p-6 rounded-xl border border-red-200">
+                    <AlertCircle className="w-8 h-8 mb-4" />
+                    <p className="text-sm font-semibold">{pdfError}</p>
                   </div>
-
-                  {/* Coverages Table */}
-                  <div className="border border-slate-300 rounded-xs overflow-hidden text-[9px]">
-                    <div className="bg-slate-100 p-1.5 font-bold uppercase text-slate-600 border-b border-slate-300">
-                      COVERAGES
-                    </div>
-                    <table className="w-full text-left border-collapse">
-                      <thead>
-                        <tr className="border-b border-slate-300 bg-slate-50 font-bold">
-                          <th className="p-1.5">COMMERCIAL GENERAL LIABILITY</th>
-                          <th className="p-1.5">POLICY NUMBER</th>
-                          <th className="p-1.5">LIMITS</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-200">
-                        <tr>
-                          <td className="p-1.5">General Liability (Occur X)</td>
-                          <td className="p-1.5 font-mono">GL-2024-88473</td>
-                          <td className="p-1.5 font-mono">
-                            Each Occ: $1,000,000 | Gen Agg: $2,000,000
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className="p-1.5">Automobile Liability</td>
-                          <td className="p-1.5 font-mono">AU-2024-77223</td>
-                          <td className="p-1.5 font-mono">CSL: $1,000,000</td>
-                        </tr>
-                        <tr>
-                          <td className="p-1.5">Umbrella Liab</td>
-                          <td className="p-1.5 font-mono">UMB-2024-55119</td>
-                          <td className="p-1.5 font-mono">Agg: $5,000,000</td>
-                        </tr>
-                      </tbody>
-                    </table>
+                ) : pdfUrl ? (
+                  <div className="bg-white shadow-2xl transition-all duration-200 overflow-hidden mx-auto shrink-0 w-full max-w-4xl">
+                    <iframe
+                      src={pdfUrl + '#view=FitH&toolbar=0'}
+                      title="Certificate PDF"
+                      className="w-full border-0"
+                      style={{ height: '85vh', minHeight: '800px' }}
+                    />
                   </div>
-
-                  {/* Holder & Representative Footer */}
-                  <div className="grid grid-cols-2 gap-4 border border-slate-300 p-3 rounded-xs text-[10px]">
-                    <div>
-                      <p className="font-bold uppercase text-[9px] text-slate-400 mb-1">CERTIFICATE HOLDER</p>
-                      <p className="font-bold">{cert.certificateHolderName}</p>
-                      <p className="text-slate-600">{cert.certificateHolderAddress}</p>
-                    </div>
-                    <div>
-                      <p className="font-bold uppercase text-[9px] text-slate-400 mb-1">AUTHORIZED REPRESENTATIVE</p>
-                      <p className="font-serif italic font-bold text-slate-800">Jane M. Reynolds</p>
-                      <p className="text-[9px] text-slate-400 mt-2">© 1988-2016 ACORD CORPORATION. All rights reserved.</p>
-                    </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center mt-20 text-slate-500">
+                    <p className="text-sm font-semibold">Generating PDF preview...</p>
                   </div>
-                </div>
+                )}
               </div>
             </Card>
           </div>

@@ -6,14 +6,17 @@ import { useRouter } from 'next/navigation';
 import { Camera, Eye, EyeOff, Check } from 'lucide-react';
 import { Button } from '@/components/shared/Button';
 import { Card } from '@/components/shared/Card';
-import { getCurrentUser, logout } from '@/lib/auth/mockAuth';
+import { createClient } from '@/lib/supabase/client';
 
 export default function ClientAccountPage() {
   const router = useRouter();
-  const [fullName, setFullName] = useState('Jordan Miller');
-  const [email, setEmail] = useState('jordan@riverside.com');
-  const [businessName, setBusinessName] = useState('Riverside Contractors Inc.');
+  const supabase = createClient();
+  
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [businessName, setBusinessName] = useState('');
   const [toastMessage, setToastMessage] = useState('');
+  const [clientId, setClientId] = useState<string | null>(null);
 
   // Password Modal state
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -23,29 +26,63 @@ export default function ClientAccountPage() {
   const [showCurrentPass, setShowCurrentPass] = useState(false);
   const [showNewPass, setShowNewPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   React.useEffect(() => {
-    const user = getCurrentUser();
-    if (user) {
-      if (user.name) setFullName(user.name);
-      if (user.email) setEmail(user.email);
-      if (user.businessName) setBusinessName(user.businessName);
-    }
-  }, []);
+    async function loadProfile() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setFullName(user.user_metadata?.name || '');
+        setEmail(user.email || '');
 
-  const handleSaveProfile = (e: React.FormEvent) => {
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('business_name, client_id')
+          .eq('id', user.id)
+          .single();
+          
+        if (profile) {
+          setBusinessName(profile.business_name || '');
+          setClientId(profile.client_id || null);
+        }
+      }
+    }
+    loadProfile();
+  }, [supabase]);
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Update Auth Metadata
+    await supabase.auth.updateUser({
+      data: { name: fullName }
+    });
+    
+    // If they belong to a client, update the clients table contact name too
+    if (clientId) {
+      await supabase.from('clients').update({ contact_name: fullName }).eq('id', clientId);
+    }
+    
     setToastMessage('Account profile updated successfully!');
     setTimeout(() => setToastMessage(''), 3000);
   };
 
-  const handleUpdatePassword = (e: React.FormEvent) => {
+  const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMsg('');
+    
     if (newPassword !== confirmPassword) {
-      setToastMessage('Passwords do not match.');
-      setTimeout(() => setToastMessage(''), 3000);
+      setErrorMsg('Passwords do not match.');
       return;
     }
+    
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    
+    if (error) {
+      setErrorMsg(error.message);
+      return;
+    }
+    
     setShowPasswordModal(false);
     setCurrentPassword('');
     setNewPassword('');
@@ -54,8 +91,8 @@ export default function ClientAccountPage() {
     setTimeout(() => setToastMessage(''), 3000);
   };
 
-  const handleSignOut = () => {
-    logout();
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
     router.push('/login');
   };
 
@@ -194,6 +231,12 @@ export default function ClientAccountPage() {
           <div className="bg-white rounded-2xl shadow-2xl border border-slate-200/90 w-full max-w-md p-6 sm:p-8 animate-in fade-in zoom-in-95">
             <h2 className="text-xl font-bold text-slate-900 mb-1">Change Password</h2>
             <p className="text-xs text-slate-500 mb-6">Enter your current password and set a new password.</p>
+
+            {errorMsg && (
+              <div className="mb-4 p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium">
+                {errorMsg}
+              </div>
+            )}
 
             <form onSubmit={handleUpdatePassword} className="space-y-4">
               <div>

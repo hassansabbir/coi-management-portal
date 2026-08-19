@@ -14,14 +14,39 @@ export default function ClientDetailPage({ params }: { params: Promise<{ clientI
   const resolvedParams = use(params);
   const clientId = resolvedParams.clientId;
 
-  const client = INITIAL_CLIENTS.find((c) => c.id === clientId) || INITIAL_CLIENTS[0]; // fallback to Sarah Mitchell
-  const certificates = INITIAL_CERTIFICATES.filter(
-    (cert) => cert.clientId === client.id || cert.insuredName === client.businessName
-  );
+  const [client, setClient] = useState<any>(null);
+  const [certificates, setCertificates] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    async function fetchClient() {
+      try {
+        const response = await fetch(`/api/admin/clients/${clientId}`);
+        if (response.ok) {
+          const data = await response.json();
+          setClient(data.client);
+          setCertificates(data.certificates || []);
+        }
+      } catch (err) {
+        console.error('Failed to fetch client details', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchClient();
+  }, [clientId]);
 
   const [activeTab, setActiveTab] = useState<'overview' | 'certificates'>('overview');
   const [showAddCertModal, setShowAddCertModal] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+
+  if (loading) {
+    return <div className="p-8 text-center text-slate-500">Loading client details...</div>;
+  }
+
+  if (!client) {
+    return <div className="p-8 text-center text-slate-500">Client not found.</div>;
+  }
 
   const handleDeleteClient = () => {
     if (confirm(`Are you sure you want to delete client "${client.contactName}"?`)) {

@@ -32,15 +32,6 @@ export const Navbar: React.FC = () => {
 
         {/* Desktop Navigation Actions matching Screenshots 1 & 2 */}
         <div className="hidden md:flex items-center gap-5">
-          {/* Notification Bell */}
-          <button
-            aria-label="Notifications"
-            className="relative p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
-          >
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white" />
-          </button>
-
           {/* Certificate Link */}
           <Link
             href="/portal"
@@ -88,13 +79,6 @@ export const Navbar: React.FC = () => {
 
         {/* Mobile menu button */}
         <div className="flex items-center gap-2 md:hidden">
-          <button
-            aria-label="Notifications"
-            className="relative p-2 text-slate-500 hover:text-slate-700 rounded-full"
-          >
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500" />
-          </button>
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="p-2 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100"
