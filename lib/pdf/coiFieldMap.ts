@@ -22,7 +22,7 @@ export const COI_FIELD_MAP = {
   /** DATE (MM/DD/YYYY) — top-right header area */
   date: {
     x: 525,
-    y: 747,
+    y: 748,
     size: 9,
   },
 
@@ -49,8 +49,8 @@ export const COI_FIELD_MAP = {
 
   /** DESCRIPTION OF OPERATIONS — large text area, full box */
   descriptionOfOperations: {
-    x: 42,
-    y: 215,
+    x: 28,
+    y: 205,
     maxWidth: 590,
     lineHeight: 11,
     size: 8,

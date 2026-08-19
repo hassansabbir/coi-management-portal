@@ -123,6 +123,19 @@ export async function generateCOI(options: GenerateCOIOptions): Promise<Uint8Arr
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
   // -------------------------------------------------------------------------
+  // ERASURE ZONES: Clear out existing text in pre-filled templates
+  // Draws white rectangles over the fields before we stamp new data.
+  // -------------------------------------------------------------------------
+  // Erase the date value (but not the "DATE" label above it)
+  page.drawRectangle({ x: 520, y: 745, width: 60, height: 10, color: rgb(1, 1, 1) });
+
+  // Erase the entire Description of Operations box contents
+  page.drawRectangle({ x: 22, y: 145, width: 555, height: 72, color: rgb(1, 1, 1) });
+
+  // Erase the Certificate Holder box contents
+  page.drawRectangle({ x: 28, y: 55, width: 270, height: 75, color: rgb(1, 1, 1) });
+
+  // -------------------------------------------------------------------------
   // FIELD 1: Certificate Date
   // -------------------------------------------------------------------------
   const formattedDate = formatDateForCOI(certificateDate);

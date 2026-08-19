@@ -2,11 +2,12 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { FileText, Eye, Edit3, Download, Check } from 'lucide-react';
+import { FileText, Eye, Edit3, Download, Check, Mail } from 'lucide-react';
 import { Certificate } from '@/types';
 import { Card } from '@/components/shared/Card';
 import { Badge } from '@/components/shared/Badge';
 import { Button } from '@/components/shared/Button';
+import { EmailCertificateModal } from '@/components/portal/EmailCertificateModal';
 
 interface CertificateSummaryCardProps {
   certificate: Certificate;
@@ -14,20 +15,14 @@ interface CertificateSummaryCardProps {
 
 export const CertificateSummaryCard: React.FC<CertificateSummaryCardProps> = ({ certificate }) => {
   const [downloaded, setDownloaded] = useState(false);
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
 
   const handleDownload = () => {
     setDownloaded(true);
     // Create a mock download link
     const element = document.createElement('a');
     const file = new Blob([
-      `CERTIFICATE OF LIABILITY INSURANCE (ACORD 25)
-Certificate Number: ${certificate.certificateNumber}
-Insured: ${certificate.insuredName}
-Certificate Holder: ${certificate.certificateHolderName} (${certificate.certificateHolderAddress})
-Certificate Date: ${certificate.certificateDate}
-Additional Insured: ${certificate.additionalInsured ? 'Yes' : 'No'}
-Status: ${certificate.status.toUpperCase()}
-Issued By: The Ewing Agency Inc.`
+      `CERTIFICATE OF LIABILITY INSURANCE (ACORD 25)\nCertificate Number: ${certificate.certificateNumber}\nInsured: ${certificate.insuredName}\nCertificate Holder: ${certificate.certificateHolderName} (${certificate.certificateHolderAddress})\nCertificate Date: ${certificate.certificateDate}\nAdditional Insured: ${certificate.additionalInsured ? 'Yes' : 'No'}\nStatus: ${certificate.status.toUpperCase()}\nIssued By: The Ewing Agency Inc.`
     ], { type: 'text/plain' });
     element.href = URL.createObjectURL(file);
     element.download = `${certificate.certificateNumber}_Certificate.txt`;
@@ -97,19 +92,28 @@ Issued By: The Ewing Agency Inc.`
         </div>
       </div>
 
-      {/* 3 Action Buttons matching Image 1 */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4 border-t border-slate-100">
-        <Link href="/portal/certificate">
+      {/* Action Buttons */}
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 pt-4 border-t border-slate-100">
+        <Link href={`/portal/certificate/${certificate.id}`}>
           <Button variant="outline" fullWidth icon={<Eye className="w-4 h-4 text-slate-600" />}>
-            View Certificate
+            View
           </Button>
         </Link>
 
-        <Link href="/portal/certificate/edit">
+        <Link href={`/portal/certificate/${certificate.id}/edit`}>
           <Button variant="primary" fullWidth icon={<Edit3 className="w-4 h-4 text-white" />}>
-            Edit Certificate
+            Edit
           </Button>
         </Link>
+
+        <Button
+          variant="outline"
+          fullWidth
+          onClick={() => setIsEmailModalOpen(true)}
+          icon={<Mail className="w-4 h-4 text-slate-600" />}
+        >
+          Email
+        </Button>
 
         <Button
           variant="outline"
@@ -120,6 +124,18 @@ Issued By: The Ewing Agency Inc.`
           {downloaded ? 'Downloaded!' : 'Download'}
         </Button>
       </div>
+
+      <EmailCertificateModal
+        isOpen={isEmailModalOpen}
+        onClose={() => setIsEmailModalOpen(false)}
+        certificateId={certificate.id}
+        certificateNumber={certificate.certificateNumber}
+        certificateDate={certificate.certificateDate}
+        certificateHolderName={certificate.certificateHolderName}
+        certificateHolderAddress={certificate.certificateHolderAddress}
+        additionalInsured={certificate.additionalInsured}
+        descriptionOfOperations={certificate.descriptionOfOperations || ''}
+      />
     </Card>
   );
 };

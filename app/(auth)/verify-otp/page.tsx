@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/shared/Button';
 import { createClient } from '@/lib/supabase/client';
 
-export default function VerifyOtpPage() {
+function VerifyOtpForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get('email') || '';
@@ -122,5 +122,13 @@ export default function VerifyOtpPage() {
         </Link>
       </div>
     </>
+  );
+}
+
+export default function VerifyOtpPage() {
+  return (
+    <Suspense fallback={<div className="p-4 text-center text-sm text-slate-500">Loading...</div>}>
+      <VerifyOtpForm />
+    </Suspense>
   );
 }

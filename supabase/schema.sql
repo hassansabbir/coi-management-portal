@@ -203,3 +203,23 @@ create trigger on_auth_user_created
 
 -- Storage RLS: only service role (admin) can access both buckets
 -- This is enforced by using the SUPABASE_SERVICE_ROLE_KEY in API routes.
+
+-- ============================================================
+-- 6. FAQS (Help & Support)
+-- ============================================================
+create table if not exists public.faqs (
+  id              uuid primary key default gen_random_uuid(),
+  question        text not null,
+  answer          text not null,
+  created_at      timestamptz not null default now()
+);
+
+alter table public.faqs enable row level security;
+
+create policy "Admins can do anything on faqs"
+  on public.faqs for all
+  using (public.get_my_role() = 'admin');
+
+create policy "Clients can read faqs"
+  on public.faqs for select
+  using (true);

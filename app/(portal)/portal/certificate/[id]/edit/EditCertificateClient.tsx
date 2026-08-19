@@ -58,12 +58,8 @@ function toInputDate(dateStr: string): string {
 // ─────────────────────────────────────────────────────────────────────────────
 // Component
 // ─────────────────────────────────────────────────────────────────────────────
-export default function EditCertificatePage() {
+export default function EditCertificateClient({ cert }: { cert: any }) {
   const router = useRouter();
-
-  // In production: use useParams() and fetch from Supabase.
-  // Currently: reads from mockData as a fallback until Supabase is populated.
-  const cert = INITIAL_CERTIFICATES[0];
 
   const [values, setValues] = useState<EditFormValues>({
     certificateDate: toInputDate(cert.certificateDate),

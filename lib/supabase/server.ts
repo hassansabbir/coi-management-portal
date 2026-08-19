@@ -37,26 +37,16 @@ export async function createServerSupabaseClient() {
  * Use ONLY in server-side code (API routes). Never expose to the browser.
  */
 export async function createAdminSupabaseClient() {
-  const cookieStore = await cookies();
-
-  return createServerClient(
+  const { createClient } = await import('@supabase/supabase-js');
+  
+  return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
     {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
-          } catch {
-            // Ignore — middleware handles session refresh
-          }
-        },
-      },
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      }
     }
   );
 }
